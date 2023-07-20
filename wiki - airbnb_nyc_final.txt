@@ -1,0 +1,354 @@
+wiki - airbnb-listings_nyc
+
+# Table of contents
+## PART 1
+-Set up main data set from insideairbnb
+-Data cleaning insideairbnb
+-Price and Rental Analysis
+-Secondary data set from Streeteasy
+-Data visualization and comparing data sets
+-Amenities clean-up
+
+## PART 2
+-StreetEasy data clean
+-Additional airbnb data clean
+-Updating airbnb dataset for further analysis
+-PowerBI Data Visualisation - Set up and Market Dashboard
+-PowerBI Data Visualisation - Correlation Dashboard
+-PowerBI Data Visualisation - Profit Calculator
+
+________________________________________________________________________________
+# Part 1
+
+## Task-set up main data set
+1. in airbnb-listings_nyc.xlsx doc, copied listings sheet and renamed copy raw data 
+2. deleted following columns
+listing_url
+scrape_id
+last_scrape
+source
+name
+description
+neighborhood_overview
+picture_url
+host_url
+host_name
+host_since
+host_location
+host_about
+host_picture_url
+host_neighbourhood
+host_listing_count
+host_total_listings_count
+host_is_superhost
+host_profile_pic
+host_identity_verified
+host_verifications
+neighbourhood
+latitude
+longitude
+property_type
+bathrooms
+minimum_minimum_nights
+maximum_maximum_nights
+minimum_nights_avg_ntm
+maximum_nights_avg_ntm
+calendar_updated
+has_availability
+availability_30
+availability_60
+availability_90
+availability_365
+calendar_last_scraped
+number_of_reviews
+number_of_reviews_ltm
+first_review
+last_review
+review_scores_accuracy
+review_scores_cleanliness
+review_scores_checkin
+review_scores_communication
+review_scores_location
+review_scores_value
+license
+instant_bookable
+calculated_host_listings_count
+calculated_host_listings_count_entire_homes
+calculated_host_listings_count_private_rooms
+calculated_host_listings_count_shared_rooms
+Reviews_per_month
+
+## Task-Initial Data Cleaning
+4. used removed duplicates tool to find any duplicates based on the id column and none were found
+5. used function =SORT(UNIQUE(F2:F42932)) to pull all unique neighborhood names in alphabetical order to check for typos
+6. used function =UNIQUE(G2:G42932) to pull all unique neighborhood group names to check for typos 
+7. used function =SORT(UNIQUE(H2:H42932)) to pull all unique property type names in alphabetical order to check for typos
+8. Copied dataset to new sheet titled two_bedroom that contains listings with specifically two-bedrooms for clearer comparison to investor’s two-bedroom place
+9. Calculated descriptive statistics of two_bedroom data set with the following functions
+
+
+Daily Price
+Min	=MIN(Two_Bedroom!$O$2:$O$6563)
+Max	=MAX(Two_Bedroom!$O$2:$O$6563)
+Mean	=AVERAGE(Two_Bedroom!$O$2:$O$6563)
+Median	=MEDIAN(Two_Bedroom!$O$2:$O$6563)
+Mode	=MODE(Two_Bedroom!$O$2:$O$6563)
+Standard Deviation	=STDEV.S(Two_Bedroom!$O$2:$O$6563)
+
+Minimum Nights Stay
+Min	=MIN(Two_Bedroom!$P$2:$P$6563)
+Max	=MAX(Two_Bedroom!$P$2:$P$6563)
+Mean	=AVERAGE(Two_Bedroom!$P$2:$P$6563)
+Median	=MEDIAN(Two_Bedroom!$P$2:$P$6563)
+Mode	=MODE(Two_Bedroom!$P$2:$P$6563)
+Standard Deviation	=STDEV.S(Two_Bedroom!$P$2:$P$6563)
+
+Min	=MIN(Two_Bedroom!$Q$2:$Q$6563)
+Max	=MAX(Two_Bedroom!$Q$2:$Q$6563)
+Mean	=AVERAGE(Two_Bedroom!$Q$2:$Q$6563)
+Median	=MEDIAN(Two_Bedroom!$Q$2:$Q$6563)
+Mode	=MODE(Two_Bedroom!$Q$2:$Q$6563)
+Standard Deviation	=STDEV.S(Two_Bedroom!$Q$2:$Q$6563)
+10. Created pivot table named histoprice with count of id as value and price as row, then copied values in new table array and created a histogram to show massive skew to the left
+11. Repeated step 10 for minimum nights stay and maximum nights stay, named histomin and histomax respectively, showing that min nights stay while skewed had a logical array from 1 night to 365 nights but max nights had a number of massive outliers going up to 20,000,000 nights
+12. To delve into outliers of daily price, used the following functions to determine quartile 1, quartile 3, IQR, lower limit, and upper limit 
+
+QTL 1	=QUARTILE.INC(Two_Bedroom!$O$2:$O$6563,1)
+QTL 3	=QUARTILE.INC(Two_Bedroom!$O$2:$O$6563,3)
+IQR	=B18-B17
+Lower Limit	=B17-(1.5*B19)
+Upper Limit	=B18+(1.5*B19)
+13. In two_bedroom sheet, created column titled daily_price_outlier, used function =OR(O2<'Descriptive Analysis'!$B$23,O2>'Descriptive Analysis'!$B$24), and flash filled down the column to determine which listings were outside the bounds of the lower and upper limit
+14. In descriptive analysis sheet, used function =COUNTIF(Two_Bedroom!U2:U6563,"TRUE") to determine how many outliers were in dataset 
+15. Used equation =(B25/B6) to calculate percentage of outliers in dataset
+16. For comparison, calculated daily price descriptive statistics without outliers with the following functions
+
+	Daily Price (no outliers)
+Min	=MIN(IF(Two_Bedroom!U2:U6563=FALSE,Two_Bedroom!$O$2:$O$6563))
+Max	=MAX(IF(Two_Bedroom!U2:U6563=FALSE,Two_Bedroom!$O$2:$O$6563))
+Mean	=AVERAGEIF(Two_Bedroom!U2:U6563,"FALSE",Two_Bedroom!$O$2:$O$6563)
+Median	=MEDIAN(IF(Two_Bedroom!U2:U6563=FALSE,Two_Bedroom!$O$2:$O$6563))
+Mode	=MODE(IF(Two_Bedroom!U2:U6563=FALSE,Two_Bedroom!$O$2:$O$6563))
+17. Used additional method to determine outliers (standard score) by first creating a column in two_bedroom sheet titled price_standard_score
+18. Set up function =STANDARDIZE(O2,'Descriptive Analysis_1'!$B$11,'Descriptive Analysis_1'!$B$14) to calculate standard score of all prices
+19. In descriptive analysis sheet, created pivot table with standard score in the row, grouped in increments of 1, and count of id/percentage of id to find that 99.15% of listings fell within standard score array
+20. In two_bedroom sheet, created column titled daily_price_outliers_stanscore and used function =OR(V2<=-3,V2>=3) to easily sort which listings were the outliers
+21. Copied dataset into new sheet titled two_bedroomv2, and renamed first working sheet two_bedroomv1
+22. Deleted identified outliers in the two_bedroomv2 sheet
+23. Sorted maximum_nights column in descending order to pull the two listings with maximum night outliers 
+24. Changed 20,000,000 days to the array max (excluding these two outliers) and mode of 1125 days
+25. Changed 9999 days to 999 days with the assumption that this was a typo
+26. In descriptive analysis_2 sheet, changed cell type for values in minimum nights stay and maximum nights stay to numbers with no decimals as the unit is in integer of days
+
+## Task-Price and Rental Term Analysis
+27. In descriptive analysis_2, created category table named rentalcat to sort available booking length into short, medium, long term stays
+28. In two_bedroomv2 sheet, created new column titled rental_term__availability_category 
+29. Used function =VLOOKUP(Q2,rentalcat,2,1) and flash filled to sort all listings
+30. In descriptive analysis_2 sheet, created pivot table with rental term category as row and average of price as value
+31. Copied pivot table and changed value to count of id 
+32. Created pivot charts for the two tables - avg nightly rate by rental term category and count of listings by rental term category 
+33. As comparison to first categorization, set up new column in two_bedroomv2 titled rental_term_category and used function =IF(AND(P2<29,Q2<29),"Short",IF(AND(P2>=29,Q2<181),"Medium",IF(P2>=181,"Long","Flexible"))), so that only places advertised as bookable between 1-28 days were short, 29-180 were medium, 181-max were long, and others were flexible. 
+34. Follow previous steps for creating pivot tables in descriptive analysis_2 sheet, set up pivot tables to compare new categorizations of stay lengths for average of price (named newrentcat), avg of price and review rating (named newrentcatreview), avg of price and borough (named newrentcatborough), count of listings (countnewrent), and avg of price and room type, adding conditional formatting for ease of reviewing results 
+
+
+
+
+## Secondary Data Set Clean and Data Pull
+
+ **this work has been redone and detailed in part 2 of wiki**
+
+35. Pulled data from streeteasy on 2-bed apartments in new york into excel named rental-listings-NYC.xlsx
+36. For the sake of focus, results were narrowed down to last five years and columns dated before June 2018 were taken out
+37. Table array was pulled into a pivot table in sheet titled Pivot, named leaserent
+38. All months left - from 6-2018 to 5-2023 were pulled into values and changed to average and cells converted to currency
+39. Values were copied and then transposed below; two dates were filled into the first two rows of the month column and then flash filled to label each date
+40. Line chart was created to show average rent in manhattan over time (adjusting x axis to only label one year at a time for readability)
+
+
+## Data Visualisation and Data Set Comparison
+
+**this work has been redone and detailed in part 2 of wiki**
+
+41. Back in the main .xlsx in the sheet titled data visualization, used a copied version of the pivot table newrentcat and calculated each daily rate by the calculated occupancy rate of 84 (rounded to 87 to account for monthly stays requiring a minimum of 29 days for each booking) from insideairbnb
+42. Pulled sums of estimated yearly earnings from the streeteasydata (jun-may of each year) into the data visualization sheet, average over 5 years was calculated
+43. Bar chart comparing calculated yearly earnings for 
+
+## Amenities clean-up
+
+**this work has been redone and detailed in part 2 of wiki** 
+
+44. Copied id and amenities column from two_bedroomv2 and pasted in new sheet titled amenities
+45. Used find and replace feature to pull out “ [ and ] from amenities column
+46. Used text to column on amenities using comma as the delimiter
+47. Used countif/wildcard function to pull the tally of key amenities as follows:
+
+**review of accuracy of these keywords to pull a correct tally is necessary in part 2, current selection very prone to error and miscalculation**
+
+Wifi - =COUNTIF(B2:CM2,"=*wifi*")
+Kitchen - =COUNTIF(B2:CM2,"*=kitchen*")
+Parking - =COUNTIF(B2:CM2,"=*parking*")
+Washer- =COUNTIF(B2:CM2,"=*washer*")
+Air Conditioner - =COUNTIF(B2:CM2,"=*air*")
+Workspace- ==COUNTIF(B2:CM2,"=*space*")
+Pet - =COUNTIF(B2:CM2,"=*pet*")
+Coffee- =COUNTIF(B2:CM2,"=*coffee*")
+Towels- =COUNTIF(B2:CM2,"=*towel*")
+TV- =COUNTIF(B2:CM2,"=*tv*")
+
+48. All functions were flash filled for all rows
+49. Count was normalized so that any amenities counted several times in a listing were listed as 1, so that the score measures either ‘yes’ they have this amenity or ‘no’ they do not have this amenity instead of the total count. Function used was =IF(CP2=0,0,1), and function was then flash filled across all columns and rows
+50. Used function =SUM(CZ2:DI2) across all normalized column to count the total amenities score
+51. Column copied and pasted back into main data for comparison
+52. Pivot table created in Data Visualization sheet with amenities score in the row, rental length category in the column, and average price in the value
+53. Used conditional highlighting to create heatmap of prices by amenities and rental length
+54. Copied data out of pivot table to format into a redesigned table for the presentation
+
+
+___________________________________________________________________________________________________________________________________________________________________
+
+# PART 2
+
+## StreetEasy Data Clean
+
+55. Made a copy of the streeteasy data set and title the sheet raw_data
+56. Converted date headers into MM-YY format in medianaskingrent_twobd
+57. Changed cell type for rent amounts to currency 
+58. Transposed dataset in a new sheet, using paste special-transpose
+59. For ease of use, transposed data was further split by borough into individual sheets titled [borough]_transposed_data
+60. Found the median of each borough’s neighborhood, adding a new column at the end of each sheet titled Median_[Borough] with the function =MEDIAN(B4:AB4). As Staten Island only had the one dataset for the entire borough, no further median needed to be found
+61. In a new sheet titled rent_over_time, each median column was added next to a date column of every month over the years 
+
+## Additional InsideAirbnb Data Clean
+
+62. Removed 773 rows for "room_type": Shared room and Hotel room since it does apply to our client
+63. Removed 120 rows in "property_type": Boat, Entire Bungalow, entire cottage, Houseboat, lighthouse, Room in Boutique hotel, private roomin earthen home, room in hotel, Private room in bed & breakfast, room in aparthotel, tent, private room in cave, private room in resort
+64. Changed 2 values of "Floor" in "property_type" to Entire home assuming it was human error
+
+
+## Updating airbnb dataset for further analysis
+
+65. Fixed rental category breakdown to show short, long, flexible as follows: 
+
+Short - between 1 and 28 days
+Long - between 29 and 1125 days
+Flexible - any booking length outside the above parameters 
+
+66. Changed function in rental_term_category column of Two_Bedroomv2 in airbnb data set to =IF(AND(Q2<29,R2<29),"Short",IF(Q2>=29,"Long","Flexible")) and flash filled
+67. Updated amenities in two separate attempts, in the first similar categories were kept but the functions used were updated for better specificity as follows: 
+
+Wifi: =COUNTIF(B2:CM2,"=*wifi*")
+Kitchen: =COUNTIF(B2:CM2,"=*kitchen*")
+Parking: =COUNTIF(B2:CM2,"=*parking*")
+Washer: =COUNTIF(B2:CM2,"=*washer*")
+Dryer: =COUNTIF(B2:CM2,"=*free dryer*")
+Air Conditioning: =COUNTIF(B2:CM2,"=*air conditioning*")
+Workspace: =COUNTIF(B2:CM2,"=*workspace*")
+Pet Friendly: =COUNTIF(B2:CM2,"=*pet*")
+Security: =COUNTIF(B2:CM2,"=*security*")
+TV: =COUNTIF(B2:CM2,"=*TV*")
+
+68. Data was then normalized, so that any counts of duplicate amenities were only scored once, using the function =IF(CP2=0,0,1) across all rows and columns
+69. Scored were tallied using the function =SUM(DA2:DJ2) to count all normalized instances of amenities
+70. The amenities score column was copied into the clean_data_set (renamed from Two_Bedroomv2) 
+71. After seeing that still a significant number - at least a quarter of the dataset - had a score of 0, went back to recalculate the amenities score based on a larger list of top amenities, using the above functions from step 67 as well as: 
+
+Hair Dryer: =COUNTIF(B2:CM2,"=*dryer*")
+Cleaning Supplies: =COUNTIF(B2:CM2,"=*cleaning*")
+Self Check-In: =COUNTIF(B2:CM2,"=*self check-in*")
+Coffee: =COUNTIF(B2:CM2,"=*coffee*")
+Tea Kettle: =COUNTIF(B2:CM2,"=*kettle*")
+Extra Blankets/Pillows =COUNTIF(B2:CM2,"=*blankets*")
+Dishwasher: =COUNTIF(B2:CM2,"=*dishwasher*")
+Heating: =COUNTIF(B2:CM2,"=*heating*")
+Essentials: =COUNTIF(B2:CM2,"=*essentials*")
+Linens: =COUNTIF(B2:CM2,"=*linens*")
+72. Steps 68 through 70 were repeated, with scores copied to a new column titled amenities_score_extra. This new score was chosen as now more listings had a more realistic score between .05-9. 
+
+
+## PowerBI Data Visualisation - Set up and Market Dashboard 
+73. The following sheets from the airbnb and streeteasy databases were imported into Power BI: 
+-Clean_Data_Set
+-Raw Data
+-Rent_Over_Time
+Cell formats were updated so that all prices were changed to currencies, dates as the correct time format, latitude/longitude as locations
+74. Text box added to top of page, titled New York City Airbnb Market and sheet titled Market Dashboard
+75. Column chart added to top left with:
+-x-axis: rental_term_category
+-y-axis: median of price
+76. Column chart added to top center with: 
+-x-axis: room_type
+-y-axis: median of price
+77. Two slicer charts in top center with fields: 
+-amenities score
+-review_scores_rating
+78. Two card charts added to center right with fields: 
+-average daily price
+-median daily price
+79. In clean_data_set, new hierarchy created for location with neighborhood_group_cleansed and neighborhood_cleansed
+80. Bar chart created in bottom left with: 
+-y-axis: location>neighborhood group cleansed>neighborhood group
+-x-axis: median of price
+81. Map added to bottom right with heat map setting turned on with latitude and longitude added from raw data, as well as: 
+-bubble size: median of price
+
+## PowerBI Data Visualisation - Correlation Dashboard
+82. Title text box and cards copied from market dashboard and added to top/left of new page titled Correlation Dashboard
+83. Five slicers added with the following fields: 
+-Amenities Score
+-review_scores_rating
+-rental_term_category
+-room_type
+-location hierarchy>borough>neighborhood
+84. Quick measure created in clean_data_set:
+-calculation: Correlation coefficient
+-category: id
+-measure x: median of minimum nights
+-measure y: median of price
+85. Card added to center left with new measure in field
+86. Quick measure created in clean_data_set: 
+-calculation: correlation coefficient
+-category: id
+-measure x: median of amenities score
+-measure y: median of price
+87. Card added to bottom left with new measure in field
+88. Scatterplot added to bottom right with: 
+-x-axis: minimum_nights
+-y-axis: median of price
+
+
+## PowerBI Data Visualisation - Profit Calculator
+89. New sheet titled profit calculator with text box added to top named Airbnb and leasing profit calculator
+90. Line chart added to bottom right with: 
+-x-axis: date>year>quarter>month
+-y-axis: bronx, manhattan, brooklyn, queens, staten island
+91. What-if parameter added for occupancy rate based on formula: Occupancy Rate = GENERATESERIES(0, 1.05, 0.05)
+92. In data view, new parameter column changed to percentage
+93. Occupancy rate value created based on function Occupancy Rate Value = SELECTEDVALUE('Occupancy Rate'[Occupancy Rate])
+94. Slicer added with occupancy rate as field
+95. What-if parameter added for airbnb cost based on formula: Airbnb Cost = GENERATESERIES(0, 5000, 1)
+96. In data view, new parameter column changed to currency
+97. Airbnb Cost Value created based on function Airbnb Cost Value = SELECTEDVALUE('Airbnb Cost'[Airbnb Cost], 4700)
+98. Slicer added with airbnb cost as field
+99. What-if parameter added for leasing cost based on formula: Leasing Cost = GENERATESERIES(0, 5000, 1)
+100. In data view, new parameter column changed to currency
+101. Slicer added with leasing cost as field
+102. What-if parameter added for guest cleaning fee based on formula: Guest Covered Cleaning Fee = GENERATESERIES(0, .5, 0.05)
+103. In data view, new parameter column changed to percentage
+104. Slicer added with guest cleaning fee as field 
+105. New table added titled Streeteasy_May2023 with the latest median monthly rents for each borough added with columns: 
+-Borough (as location)
+-Median Rent (in currency)
+106. In data model view, relationship created from borough in streeteasy_may2023 table to Borough in Clean_Data_Set
+107. New measure created to calculate leasing profit with function: Leasing Profit = MEDIAN(Streeteasy_May2023[Median Rent])-'Leasing Cost'[Leasing Cost Value]
+108. New measure created to calculate airbnb profit (before cleaning fees) with function: Airbnb Profit = Clean_Data_Set[Monthly Revenue by Occupancy Rate]-'Airbnb Cost'[Airbnb Cost Value]
+109. New measure created to calculate airbnb profit after additional cleaning fees from guests with function: Airbnb Profit plus Cleaning = ((MEDIAN(Clean_Data_Set[price])*'Guest Covered Cleaning Fee'[Guest Covered Cleaning Fee Value])*30)+'Clean_Data_Set'[Airbnb Profit] 
+
+**note - this function is subject to further review and change in calculation so that the slicer can change revenue based on each night booked rather than a percentage of a 30 day month**
+
+110. Bar chart created in bottom left with: 
+-x-axis: borough
+-y-axis: airbnb, leasing 
+
+
+
+
